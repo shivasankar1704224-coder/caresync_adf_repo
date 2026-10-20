@@ -158,12 +158,7 @@
 			},
 			"adf_run_id": {
 				"type": "string",
-				"defaultValue": "a3"
-			}
-		},
-		"variables": {
-			"test": {
-				"type": "String"
+				"defaultValue": "a4"
 			}
 		},
 		"annotations": []
