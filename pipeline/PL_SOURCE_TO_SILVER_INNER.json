@@ -287,7 +287,7 @@
 									"referenceName": "DS_AzureSqlTable",
 									"type": "DatasetReference"
 								},
-								"firstRowOnly": false
+								"firstRowOnly": true
 							}
 						},
 						{
@@ -309,7 +309,7 @@
 							"typeProperties": {
 								"variableName": "watermark_value",
 								"value": {
-									"value": "@activity('Read Table Details').output.firstRow.watermark_value",
+									"value": "@activity('Read Watermark').output.firstRow.watermark_value",
 									"type": "Expression"
 								}
 							}
