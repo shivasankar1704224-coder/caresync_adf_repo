@@ -71,7 +71,7 @@
 					"source": {
 						"type": "PostgreSqlV2Source",
 						"query": {
-							"value": "select * from public.@{activity('Read Table Details').output.firstRow.source_table_name} \n@{\n    if(equals(activity('Read Table Details').output.firstRow.load_type,'FULL')\n    ,''\n    ,concat('where' ,activity('Read Table Details').output.firstRow.watermark_column, ' > ', '''' , variables('watermark_value'), '''')\n      )\n}activity('Read Watermark').output.count",
+							"value": "select * from public.@{activity('Read Table Details').output.firstRow.source_table_name} \n@{\n    if(equals(activity('Read Table Details').output.firstRow.load_type,'FULL')\n    ,''\n    ,concat('where updated_at > ' , '''' , variables('watermark_value'), '''')\n      )\n}",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00"
@@ -186,11 +186,11 @@
 							"value": "@variables('start_time')",
 							"type": "Expression"
 						},
-						"merge_keys": {
+						"load_type": {
 							"value": "@activity('Read Table Details').output.firstRow.load_type",
 							"type": "Expression"
 						},
-						"load_type": {
+						"merge_keys": {
 							"value": "@coalesce(activity('Read Table Details').output.firstRow.merge_keys, '')",
 							"type": "Expression"
 						}
