@@ -4,6 +4,7 @@
 		"activities": [
 			{
 				"name": "Copy data1",
+				"description": "this is to test the feature1_test branch",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
