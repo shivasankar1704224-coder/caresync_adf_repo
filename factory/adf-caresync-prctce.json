@@ -5,6 +5,10 @@
 			"email_receipient": {
 				"type": "string",
 				"value": "shivasankar.1704224@srec.ac.in"
+			},
+			"env": {
+				"type": "string",
+				"value": "DEV"
 			}
 		}
 	},
