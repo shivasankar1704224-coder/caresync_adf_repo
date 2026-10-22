@@ -1,0 +1,179 @@
+{
+	"name": "PL_SEND_EMAIL",
+	"properties": {
+		"activities": [
+			{
+				"name": "Read All tables status",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "select * from ctrl.audit_log where adf_run_id = @{pipeline().parameters.adf_run_id} order by table_id asc",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_AzureSqlTable",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Prepare Email Body Header",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "body_header",
+					"value": "Ingestion and Trasnformation process has been completed and below is the status"
+				}
+			},
+			{
+				"name": "Prepare Email Body Footer",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "body_footer",
+					"value": "For any support, please reach out to our support team"
+				}
+			},
+			{
+				"name": "Prepare Email Subject",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Check overall failed count",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "email_subject",
+					"value": {
+						"value": "@{pipeline().globalParameters.env}| @{if(greater(activity('Check overall failed count').output.firstRow.count,0),'FAILED','SUCCESS')} | CARESYNC MASTER RUN",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Check overall failed count",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "select count(*) as count from ctrl.audit_log where adf_run_id = @{pipeline().parameters.adf_run_id} and status != 'SUCCESS'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_AzureSqlTable",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Prepare Logic Apps Body",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Prepare Email Subject",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Read All tables status",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Prepare Email Body Header",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Prepare Email Body Footer",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "logic_apps_body",
+					"value": {
+						"value": "{\n  \"subject\": \"@{variables('email_subject')}\",\n  \"email_receipients\": \"@{pipeline().globalParameters.email_receipient}\",\n  \"body_header\": \"@{variables('body_header')}\",\n  \"body_footer\": \"@{variables('body_footer')}\",\n  \"status_table\": @{activity('Read All tables status').output.value}\n}   ",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"adf_run_id": {
+				"type": "string",
+				"defaultValue": "923afcd9-b75d-4254-bf82-d143a2f6f18a"
+			}
+		},
+		"variables": {
+			"body_header": {
+				"type": "String"
+			},
+			"body_footer": {
+				"type": "String"
+			},
+			"email_subject": {
+				"type": "String"
+			},
+			"logic_apps_body": {
+				"type": "String"
+			}
+		},
+		"annotations": []
+	}
+}
