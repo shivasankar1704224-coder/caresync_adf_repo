@@ -1,0 +1,12 @@
+{
+	"name": "adf-caresync-prctce",
+	"properties": {
+		"globalParameters": {
+			"email_receipient": {
+				"type": "string",
+				"value": "shivasankar.1704224@srec.ac.in"
+			}
+		}
+	},
+	"location": "centralindia"
+}
